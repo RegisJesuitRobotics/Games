@@ -1,0 +1,509 @@
+//{Created by Joe Wrape}
+
+
+
+//This work *may* be subject to Copyright
+
+import java.awt.Color;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+
+import javax.swing.JOptionPane;
+
+import acm.graphics.*;
+import acm.program.GraphicsProgram;
+
+public class NoMansSki2 extends GraphicsProgram {
+
+	double gameState= 1;
+	int hp;
+	double time = 5;
+	double gravity = 0;
+	double jumpPower = 0;
+	double moveDelay = 0;
+	double score = 0;
+	
+	String input;
+	int pause=0;
+	
+	
+	double skiX;
+	double skiY;
+	
+	double snowballX;
+	double snowballY;
+	double snowballS;
+	
+	double houseX;
+	double houseY;
+	double houseXS;
+	
+	double tree1X;
+	double tree1Y;
+	double tree1XS;
+	
+	double chasmX;
+	double chasmY;
+	double chasmXS;
+	
+	double tree2X;
+	double tree2Y;
+	double tree2XS;
+	
+	double tree1YA;
+	double tree2YA;
+	double houseYA;
+	double chasmYA;
+	double snowballYA;
+	double skiYA;
+	
+	double z;
+	double chargeBall;
+	
+	
+	double snowballSize;
+	
+	GPolygon hill = new GPolygon();
+	GOval skier = new GOval(20, 20);
+	GPolygon tree1 = new GPolygon ();
+	GPolygon tree2 = new GPolygon ();
+	GPolygon house = new GPolygon ();
+	GRect chasm = new GRect (30, 200);
+	GLabel Health = new GLabel ("HP: " +hp);
+	GLabel Title1 = new GLabel ("NO MAN's SKI");
+	GLabel Title2 = new GLabel ("2");
+	GLabel Score = new GLabel ("Score:" +score);
+	GOval snowball = new GOval (snowballSize, snowballSize);
+	
+	public void init () {
+		
+		addMouseListeners();
+		addKeyListeners();
+		
+		hill.addVertex(0, 0);
+		hill.addVertex(0, 2000);
+		hill.addVertex(2000, 2000);
+		hill.setColor(Color.WHITE);
+		hill.setFilled(true);
+		
+		skier.setColor(Color.BLUE);
+		skier.setFilled(true);
+		
+		snowball.setColor(Color.WHITE);
+		snowball.setFilled(true);
+
+		tree1.setFilled(true);
+		tree1.setColor(Color.GREEN);
+		
+		tree1.addVertex(15, 0);//tree top
+		tree1.addVertex(30, 20);//tree branch 2 far right
+		tree1.addVertex(20, 20);//tree branch 2 center right
+		tree1.addVertex(30, 40);//tree branch 1 right
+		tree1.addVertex(20, 40);//end of trunk right
+		tree1.addVertex(20, 60);//bottom right corner trunk
+		tree1.addVertex(10, 60);//bottom left corner trunk
+		tree1.addVertex(10, 40);//end of trunk left
+		tree1.addVertex(0, 40);//tree branch 1 left
+		tree1.addVertex(10, 20);//tree branch 2 center left
+		tree1.addVertex(0, 20);//tree branch 2 far left
+
+		tree2.setFilled(true);
+		tree2.setColor(Color.GREEN);
+		
+		tree2.addVertex(15, 0);//tree top
+		tree2.addVertex(30, 20);//tree branch 2 far right
+		tree2.addVertex(20, 20);//tree branch 2 center right
+		tree2.addVertex(30, 40);//tree branch 1 right
+		tree2.addVertex(20, 40);//end of trunk right
+		tree2.addVertex(20, 60);//bottom right corner trunk
+		tree2.addVertex(10, 60);//bottom left corner trunk
+		tree2.addVertex(10, 40);//end of trunk left
+		tree2.addVertex(0, 40);//tree branch 1 left
+		tree2.addVertex(10, 20);//tree branch 2 center left
+		tree2.addVertex(0, 20);//tree branch 2 far left
+		
+		
+		house.setFilled(true);
+		house.setColor(Color.RED);
+		house.addVertex(20,0);//house roof top
+		
+		house.addVertex(28,8);//house chimney bottom left
+		house.addVertex(28,5);//house chimney top left
+		house.addVertex(32,5);//house chimney top right
+		house.addVertex(32,12);//house chimney bottom right
+		
+		house.addVertex(40,20);//house roof far right
+		house.addVertex(30,20);//house roof right
+		house.addVertex(30,40);//house bottom right
+		house.addVertex(10,40);//house bottom left
+		house.addVertex(10,20);//house roof left
+		house.addVertex(0,20);//house roof far left
+		
+		
+		setBackground(Color.LIGHT_GRAY);
+		chasm.setColor(Color.LIGHT_GRAY);
+		chasm.setFilled(true);
+		Title1.setFont("Serif-BOLD-20");
+		Title2.setFont("Serif-BOLD-40");
+		Title2.setColor(Color.RED);
+	}
+	
+	public void showPositions (){
+		
+		Health.setLabel("HP: " +hp);
+		Score.setLabel("Score: " +score);
+		snowball.setSize(snowballSize, snowballSize);
+		
+		
+		add (hill, 0,0);
+		add (Health, 600, 100);
+		add (Score, 700, 100);
+		add (Title1, 300, 100);
+		add (Title2, 420, 130);
+		
+		add (chasm, chasmX, chasmYA);
+		add (skier, skiX, skiYA);
+		add (tree1, tree1X, tree1YA);
+		add (tree2, tree2X, tree2YA);
+		add (house, houseX, houseYA);
+		add (snowball, snowballX, snowballYA);
+		
+		
+		
+		
+	}
+	
+	public void mousePressed(MouseEvent e) {
+		gravity = 1;
+	}
+	
+	public void keyPressed (KeyEvent k){
+	
+		int key = k.getKeyCode();
+		
+		if (key == KeyEvent.VK_Q){
+			if (pause ==0){
+			pause = 1;
+			}
+			if (pause ==1){
+				pause=0;
+			}
+		}
+		
+		if (key == KeyEvent.VK_A & moveDelay > 10 & skiX > 20){
+			skiX= skiX -20;
+			gravity = -1;
+			moveDelay = 0;
+		}
+		if (key == KeyEvent.VK_D & moveDelay > 10 & skiX < 900){
+			skiX = skiX +20;
+			gravity = -1;
+			moveDelay = 0;
+		}
+		if (key == KeyEvent.VK_S){
+			gravity = -1;
+		}
+		if (key == KeyEvent.VK_W){
+			gravity = 1;
+		}
+	}
+	
+	public void gravity(){//make the skier go down until he hits ground
+		
+		if (jumpPower < 0 || skiY < 0){
+			gravity = -1;
+		}
+		
+		if (gravity == -1){
+			skiY = skiY +2;
+		}
+		if (gravity == 1){
+			skiY = skiY -2;
+			jumpPower--;
+		}
+	}
+	public void checkDamage (){//see if you hit something and if you do then feel pain
+		if (tree1.contains(skiX, skiY)) {
+			hp--;
+			resetTree1 ();
+		}
+		if (tree2.contains(skiX, skiY)) {
+			hp--;
+			resetTree2();
+		}
+		if (house.contains(skiX, skiY)) {
+			hp--;
+			resetHouse();
+		}
+		if (chasm.contains(skiX, skiY)) {
+			hp--;
+			resetChasm();
+		}
+		
+	}
+	public void resetTree1 (){//send tree1 to the bottom
+		tree1X = 1650;
+		tree1Y = 1650;
+		tree1XS =  Math.floor((Math.random() * 4) + 1);
+		score = score + 20;
+	}
+	public void resetTree2 (){//send tree2 to the bottom
+		tree2X = 1400;
+		tree2Y = 1400;
+		tree2XS = Math.floor((Math.random() * 2) + 1);
+		score= score+ 20;
+	}
+	public void resetHouse(){//send house to the bottom
+		houseX = 1500;
+		houseY = 1500;
+		houseXS = Math.floor((Math.random() * 4) + 1);
+		score=  score+20;
+	}
+	public void resetChasm(){//send chasm to the bottom
+		chasmX = 1600;
+		chasmY = 1600;
+		chasmXS = Math.floor((Math.random() * 4) + 1);
+		score= score + 20;
+	}
+	public void NormalForce(){//make stuff go up if they are in the hill
+		if (hill.contains(skiX, skiY)){
+			skiY = skiY - 4;
+			gravity = 0;
+			jumpPower = 100;
+		}
+		if (hill.contains(tree1X, tree1Y)){
+			tree1Y = tree1Y - 4;
+		}
+		if (hill.contains(tree2X, tree2Y)){
+			tree2Y = tree2Y - 4;
+		}
+		if (hill.contains(houseX, houseY)){
+			houseY = houseY - 4;
+		}
+		if (hill.contains(chasmX, chasmY)){
+			chasmY = chasmY - 4;
+		}
+		if (hill.contains(snowballX, snowballY)){
+			snowballY = snowballY - 4;
+		}
+		else {
+			snowballY = snowballY + 3;
+		}
+		
+		
+	}
+	
+	public void moveStuff () {
+		tree1X = tree1X - tree1XS;
+		tree2X = tree2X - tree2XS;
+		houseX = houseX - houseXS;
+		chasmX = chasmX - chasmXS;
+		snowballX = snowballX + snowballS;
+	}
+	
+	public void resetStuff (){
+		if (tree1X < 0){
+			resetTree1();
+		}
+		if (tree2X < 0){
+			resetTree2();
+		}
+		if (houseX < 0){
+			resetHouse();
+		}
+		if (chasmX < 0){
+			resetChasm();
+		}
+		if (snowballX > 1900){
+			snowballS = 0;
+		}
+	}
+	
+	public void graphicalOverDriveMatrix (){
+		
+		tree1YA = tree1Y - 37;
+		tree2YA = tree2Y - 37;
+		houseYA = houseY - 14;
+		chasmYA = chasmY - 10;
+		z = snowballSize / 1.5;
+		snowballYA = snowballY - z;
+		skiYA = skiY - 10;
+		
+		
+	}
+	
+	public void snowBallDestroy (){
+		
+		if (snowball.contains(tree1X, tree1Y)){
+			resetTree1();
+		}
+		if (snowball.contains(tree2X, tree2Y)){
+			resetTree2();
+		}
+		if (snowball.contains(houseX, houseY)){
+			resetHouse();
+		}
+		if (snowball.contains(chasmX, chasmY)){
+			resetChasm();
+		}
+		if (snowball.contains(skiX, skiY)){
+			hp--;
+			snowballX = skiX + 30;
+			snowballY = skiY + 30;
+		}
+			
+	}
+	
+	public void shootSnowball1 (){
+		snowballSize = 50;
+		snowballX = skiX;
+		snowballY = skiY;
+		snowballS = 2;
+		//JOptionPane.showMessageDialog(null, "This code was run");
+		 
+	}
+	public void shootSnowball2 (){
+		chargeBall= 0;
+		snowballSize = 0;
+		snowballX = 1;
+		snowballY = -10;
+		snowballS = 2;
+		//JOptionPane.showMessageDialog(null, "This code was run");
+		 
+	}
+	
+	public void pauseGame (){
+		while (pause ==1){
+			pause (10);
+		}
+	}
+	
+	
+	public void run (){
+		while (gameState != 0){
+			
+			
+			
+			hp = 3;
+			skiX = 50;
+			skiY = 100;
+			snowballSize= 0;
+			gameState = 1;
+			score = 0;
+			chargeBall = 0;
+			
+			resetTree1();
+			resetTree2();
+			resetHouse();
+			resetChasm();
+			
+			score = 0;
+			
+			add (hill,0,0);
+			
+			JOptionPane.showMessageDialog(null, "Welcome to No Man's Ski 2!");
+			input = JOptionPane.showInputDialog("Select Difficulty: \n Easy \n Medium \n Hard ");
+			if (input.equals("easy") || input.equals("Easy")){
+				time = 10;
+			}
+			else if (input.equals("hard") || input.equals("Hard")){
+				time = 4;
+			}
+			else if (input.equals("up up down down")){
+				time = 4;
+				hp = 1000;
+			}
+			else if (input.equals("another one")){
+				time = 7;
+				Title2.setLabel("3");
+				Title2.setColor(Color.ORANGE);
+				skier.setColor(Color.GREEN);
+			}
+			else if (input.equals("nightmode")){
+				time = 7;
+				Title2.setLabel("Dark");
+				setBackground(Color.DARK_GRAY);
+				chasm.setColor(Color.DARK_GRAY);
+				hill.setColor(Color.LIGHT_GRAY);
+				snowball.setColor(Color.LIGHT_GRAY);
+					
+			}
+			else if (input.equals("change title")){
+				time = 7;
+				input = JOptionPane.showInputDialog("Set the name of the title:");
+				if (input.equals("No Man's Sky")|| input.equals("no mans sky")){
+					JOptionPane.showMessageDialog(null, "Error, copyright infringement");
+					input = "No Man's Ski";
+				}
+				Title1.setLabel(input);
+					
+			}
+			else {
+				time = 7;
+			}
+			
+			Score.setLabel("Click the screen to begin");
+			add (Score, 400, 400);
+			waitForClick();
+			
+			while (gameState == 1){
+				
+				pause (time);
+				
+				score++;
+				chargeBall++;
+				pauseGame();
+				
+				if (chargeBall > 2000){
+					shootSnowball2();
+				}
+				
+				if (hp < 1){
+					gameState = 5;
+				}
+				
+				gravity();
+				NormalForce();
+				checkDamage();
+				graphicalOverDriveMatrix ();
+				snowBallDestroy();
+				moveStuff();
+				resetStuff ();
+				showPositions();
+				
+				snowballSize = snowballSize + 0.35;
+				
+				
+				if (moveDelay < 11){
+					moveDelay++;
+				}
+			}
+			shootSnowball1();
+			while (snowballX < 1800){
+				pause (7);
+				snowballSize = snowballSize + 0.5;
+				gravity();
+				NormalForce();
+				graphicalOverDriveMatrix ();
+				moveStuff();
+				//resetStuff();
+				snowBallDestroy();
+				showPositions();
+				remove (skier);
+			}
+			
+			
+			
+			input = JOptionPane.showInputDialog("Do you want to play again");
+			
+					if (input.equals("no")||input.equals("naw")|| input.equals("NO")||input.equals("definately not")||input.equals("absolutely not")){
+						JOptionPane.showMessageDialog(null, "Thanks For Playing!");
+						gameState = 0;
+					}
+			
+		}
+		System.exit(0);
+	}
+	
+	
+}
